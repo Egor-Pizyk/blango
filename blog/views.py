@@ -8,13 +8,20 @@ from django.views.decorators.vary import vary_on_headers
 from blog.forms import CommentForm
 from blog.models import Post
 
+def get_ip(request):
+  from django.http import HttpResponse
+  return HttpResponse(request.META['REMOTE_ADDR'])
 
 @cache_page(300)
 @vary_on_headers("Cookie")
 def index(request):
-    posts = Post.objects.filter(published_at__lte=timezone.now())
-    print(posts)
+    posts = (
+        Post.objects.filter(published_at__lte=timezone.now())
+        .select_related("author")
+        .defer("created_at", "modified_at")
+    )
     return render(request, "blog/index.html", {"posts": posts})
+
 
 def post_detail(request, slug):
     post = get_object_or_404(Post, slug=slug)
