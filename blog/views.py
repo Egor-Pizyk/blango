@@ -2,11 +2,15 @@ from django.shortcuts import render
 from django.utils import timezone
 from django.shortcuts import render, get_object_or_404
 from django.shortcuts import redirect
-from blog.forms import CommentForm
+from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_headers
 
+from blog.forms import CommentForm
 from blog.models import Post
 
 
+@cache_page(300)
+@vary_on_headers("Cookie")
 def index(request):
     posts = Post.objects.filter(published_at__lte=timezone.now())
     print(posts)
